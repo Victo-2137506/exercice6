@@ -130,4 +130,4 @@ const modelSupprimerPokemon = (id) => {
     });
 };
 
-export {modelPokemon, modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon, trouverUnPokemon};
+export {modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon, trouverUnPokemon};
