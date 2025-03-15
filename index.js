@@ -9,8 +9,6 @@ const app = express();
 
 // Importer les middlewares
 app.use(express.json());
-var accessLogStream = fs.createWriteStream('./src/Logs/access.log', { flags: 'a' });
-app.use(morgan('dev', {stream: accessLogStream}));
 
 
 app.use('/api/pokemon', pokemonRoutes);
