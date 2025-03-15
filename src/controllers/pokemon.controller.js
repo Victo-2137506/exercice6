@@ -1,4 +1,4 @@
-import { modelPokemon, modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon } from '../models/pokemon.model.js';
+import {modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon, trouverUnPokemon} from '../models/pokemon.model.js';
 
 //Permet d'afficher le pokemon selon son id
 const AfficherPokemonSelonId = (req, res) => {
@@ -9,7 +9,7 @@ const AfficherPokemonSelonId = (req, res) => {
         return;
     }
 
-    modelPokemon(id)
+    trouverUnPokemon(id)
         .then((pokemon) => {
             if (pokemon.length === 0) { // Vérifie si aucun résultat n'est retourné
                 res.status(404).json({ message: "Pokémon non trouvé" });
