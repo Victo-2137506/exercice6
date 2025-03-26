@@ -23,23 +23,22 @@ const AfficherPokemonSelonId = (req, res) => {
         });
 };
 
-const AfficherPokemonParListe = (req, res) => {
+const AfficherPokemonParListe = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Page par défaut : 1
     const type = req.query.type || null; // Type par défaut : aucun filtre
 
     if (page < 1) {
-        res.status(400).json({ message: "Le numéro de page doit être supérieur ou égal à 1" });
-        return;
+        return res.status(400).json({ message: "Le numéro de page doit être supérieur ou égal à 1" });
     }
 
-    modelListePokemon(page, type)
-        .then((resultat) => {
-            res.json(resultat);
-        })
-        .catch((error) => {
-            res.status(500).json({ message: "Erreur serveur", erreur: error.message });
-        });
-}
+    try {
+        const resultat = await modelListePokemon(page, type);
+        res.json(resultat);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", erreur: error.message });
+    }
+};
+
 
 const AjouterPokemon = (req, res) => {
     const { nom, type_primaire, type_secondaire, pv, attaque, defense } = req.body;

@@ -17,66 +17,57 @@ function trouverUnPokemon(id) {
     });
 }
 
-const modelListePokemon = (page, type) => {
+function modelListePokemon(page, type) {
     return new Promise((resolve, reject) => {
-        const limite = 25; // Nombre de Pokémon affichés par page
-        const offset = (page - 1) * limite; // Calcul de l'offset pour la pagination
+        const limite = 25;
+        const offset = (page - 1) * limite;
 
-        // Construction de la requête SQL de base pour récupérer les Pokémon
-        let requete = 'SELECT nom, type_primaire, type_secondaire, pv, attaque, defense FROM pokemon';
+        let requete = 'SELECT id, nom, type_primaire, type_secondaire, pv, attaque, defense FROM pokemon';
         let params = [];
 
-        // Ajout d'un filtre si un type est spécifié
         if (type) {
-            requete += ' WHERE type_primaire = ?';
+            requete += ' WHERE type_primaire = $1';
             params.push(type);
         }
 
-        // Ajout de la pagination à la requête
-        requete += ' LIMIT ? OFFSET ?';
+        requete += ' LIMIT $2 OFFSET $3';
         params.push(limite, offset);
 
-        // Exécution de la première requête SQL pour récupérer les Pokémon filtrés et paginés
-        db.query(requete, params, (erreur, resultat) => {
+        sql.query(requete, params, (erreur, resultat) => {
             if (erreur) {
-                console.log('Erreur sqlState ' + erreur.sqlState + ' : ' + erreur.sqlMessage);
-                reject(erreur); // En cas d'erreur SQL, on rejette la promesse
+                console.log('Erreur SQL :', erreur);
+                reject(erreur);
                 return;
             }
 
-            // Construction de la requête pour compter le nombre total de Pokémon
             let requeteTotal = 'SELECT COUNT(*) AS total FROM pokemon';
             let paramsTotal = [];
 
-            // Ajout du filtre sur le type si nécessaire
             if (type) {
-                requeteTotal += ' WHERE type_primaire = ?';
+                requeteTotal += ' WHERE type_primaire = $1';
                 paramsTotal.push(type);
             }
 
-            // Exécution de la requête pour obtenir le nombre total de Pokémon
-            db.query(requeteTotal, paramsTotal, (err, totalResult) => {
+            sql.query(requeteTotal, paramsTotal, (err, totalResult) => {
                 if (err) {
-                    console.log('Erreur sqlState ' + err.sqlState + ' : ' + err.sqlMessage);
-                    reject(err); // En cas d'erreur SQL, on rejette la promesse
+                    console.log('Erreur SQL :', err);
+                    reject(err);
                     return;
                 }
 
-                // Calcul du nombre total de pages
-                const nombrePokemonTotal = totalResult[0].total;
+                const nombrePokemonTotal = totalResult.rows[0].total;
                 const totalPage = Math.max(1, Math.ceil(nombrePokemonTotal / limite));
 
-                // Résolution de la promesse avec les résultats sous forme d'objet JSON
                 resolve({
-                    nombrePokemonTotal, // Nombre total de Pokémon correspondant à la requête
-                    page, // Page actuelle
-                    totalPage, // Nombre total de pages
-                    pokemons: resultat // Liste des Pokémon retournés
+                    nombrePokemonTotal,
+                    page,
+                    totalPage,
+                    pokemons: resultat.rows
                 });
             });
         });
     });
-};
+}
 
 const modelAjouterPokemon = (nom, type_primaire, type_secondaire, pv, attaque, defense) => {
     return new Promise((resolve, reject) => {
