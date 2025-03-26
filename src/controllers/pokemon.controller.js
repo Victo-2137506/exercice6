@@ -1,49 +1,41 @@
-import {modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon, trouverUnPokemon} from '../models/pokemon.model.js';
+import { modelListePokemon, modelAjouterPokemon, modelModifierPokemon, modelSupprimerPokemon, trouverUnPokemon } from '../models/pokemon.model.js';
 
-//Permet d'afficher le pokemon selon son id
+// Permet d'afficher un Pokémon selon son ID
 const AfficherPokemonSelonId = (req, res) => {
-    const id = req.params.id; // Récupération de l'ID depuis l'URL
+    const id = parseInt(req.params.id); // Conversion en nombre
 
-    if (isNaN(id)) {  // Vérifie si l'ID est un nombre valide
-        res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
-        return;
+    if (isNaN(id)) {
+        return res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
     }
 
     trouverUnPokemon(id)
         .then((pokemon) => {
-            if (pokemon.length === 0) { // Vérifie si aucun résultat n'est retourné
-                res.status(404).json({ message: "Pokémon non trouvé" });
-                return;
+            if (!pokemon) {
+                return res.status(404).json({ message: "Pokémon non trouvé" });
             }
-
-            res.json(pokemon[0]); // Envoie le premier élément du tableau
+            res.json(pokemon);
         })
         .catch((error) => {
             res.status(500).json({ message: "Erreur serveur", erreur: error.message });
         });
 };
 
-const AfficherPokemonParListe = async (req, res) => {
-    const page = parseInt(req.query.page) || 1; // Page par défaut : 1
-    const type = req.query.type || null; // Type par défaut : aucun filtre
+const AfficherPokemonParListe = (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const type = req.query.type || null;
 
     if (page < 1) {
         return res.status(400).json({ message: "Le numéro de page doit être supérieur ou égal à 1" });
     }
 
-    try {
-        const resultat = await modelListePokemon(page, type);
-        res.json(resultat);
-    } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", erreur: error.message });
-    }
+    modelListePokemon(page, type)
+        .then((resultat) => res.json(resultat))
+        .catch((error) => res.status(500).json({ message: "Erreur serveur", erreur: error.message }));
 };
-
 
 const AjouterPokemon = (req, res) => {
     const { nom, type_primaire, type_secondaire, pv, attaque, defense } = req.body;
 
-    // Vérification des champs manquants
     let champsManquants = [];
     if (!nom) champsManquants.push("nom");
     if (!type_primaire) champsManquants.push("type_primaire");
@@ -62,74 +54,60 @@ const AjouterPokemon = (req, res) => {
     modelAjouterPokemon(nom, type_primaire, type_secondaire, pv, attaque, defense)
         .then((nouveauPokemon) => {
             res.status(201).json({
-                message: `Le pokemon ${nouveauPokemon.nom} a été ajouté avec succès`,
+                message: `Le Pokémon ${nouveauPokemon.nom} a été ajouté avec succès`,
                 pokemon: nouveauPokemon
             });
         })
         .catch((error) => {
-            console.error(`Erreur SQL ${error.sqlState} : ${error.sqlMessage}`);
-            res.status(500).json({
-                erreur: `Échec lors de la création du pokemon ${nom}`
-            });
+            res.status(500).json({ erreur: `Échec lors de la création du Pokémon ${nom}`, message: error.message });
         });
 };
 
 const ModifierPokemon = (req, res) => {
-    const id = req.params.id; // Récupération de l'ID depuis l'URL
+    const id = parseInt(req.params.id);
 
-    if (isNaN(id)) {  // Vérifie si l'ID est un nombre valide
-        res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
-        return;
+    if (isNaN(id)) {
+        return res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
     }
 
-    // Récupération des données envoyées dans le corps de la requête
     const { nom, type_primaire, type_secondaire, pv, attaque, defense } = req.body;
 
     if (!nom || !type_primaire || !pv || !attaque || !defense) {
-        res.status(400).json({ message: "Tous les champs doivent être remplis" });
-        return;
+        return res.status(400).json({ message: "Tous les champs doivent être remplis" });
     }
 
     modelModifierPokemon(id, nom, type_primaire, type_secondaire, pv, attaque, defense)
-        .then(() => {
+        .then((pokemon) => {
             res.status(200).json({
                 message: `Le Pokémon avec l'ID ${id} a été modifié avec succès`,
-                pokemon: { id, nom, type_primaire, type_secondaire, pv, attaque, defense }
+                pokemon
             });
         })
         .catch((error) => {
-            console.error(`Erreur SQL ${error.sqlState} : ${error.sqlMessage}`);
-            res.status(500).json({
-                erreur: `Échec lors de la modification du Pokémon ${nom}`
-            });
+            res.status(500).json({ erreur: `Échec lors de la modification du Pokémon ${nom}`, message: error.message });
         });
 };
 
-
 const SupprimerPokemon = (req, res) => {
-    const id = req.params.id; // Récupération de l'ID depuis l'URL
+    const id = parseInt(req.params.id);
 
-    if (isNaN(id)) {  // Vérifie si l'ID est un nombre valide
-        res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
-        return;
+    if (isNaN(id)) {
+        return res.status(400).json({ message: "L'ID du Pokémon doit être un nombre" });
     }
 
     modelSupprimerPokemon(id)
-    .then((result) => {
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: `Aucun Pokémon trouvé avec l'ID ${id}` });
-        }
-        res.status(200).json({
-            message: `Le Pokémon avec l'ID ${id} a été supprimé avec succès.`,
-            id: id
-        });
-    })
+        .then((resultat) => {
+            if (resultat.rowCount === 0) {
+                return res.status(404).json({ message: `Aucun Pokémon trouvé avec l'ID ${id}` });
+            }
+            res.status(200).json({
+                message: `Le Pokémon avec l'ID ${id} a été supprimé avec succès.`,
+                id
+            });
+        })
         .catch((error) => {
             res.status(500).json({ message: "Erreur serveur", erreur: error.message });
         });
 };
-
-
-
 
 export { AfficherPokemonSelonId, AfficherPokemonParListe, AjouterPokemon, ModifierPokemon, SupprimerPokemon };
