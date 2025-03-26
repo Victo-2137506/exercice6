@@ -17,8 +17,6 @@ function trouverUnPokemon(id) {
     });
 }
 
-import sql from '../config/dp_pg.js';
-
 const modelListePokemon = (page, type) => {
     return new Promise((resolve, reject) => {
         const limite = 25; // Nombre de Pokémon affichés par page
