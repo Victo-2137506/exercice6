@@ -21,10 +21,9 @@ function modelListePokemon(page, type) {
     return new Promise((resolve, reject) => {
         const limite = 25;
         const offset = (page - 1) * limite;
-
         let requete = 'SELECT id, nom, type_primaire, type_secondaire, pv, attaque, defense FROM pokemon';
         let params = [];
-
+        
         if (type) {
             requete += ' WHERE type_primaire = $1';
             params.push(type);
@@ -68,6 +67,7 @@ function modelListePokemon(page, type) {
         });
     });
 }
+
 
 const modelAjouterPokemon = (nom, type_primaire, type_secondaire, pv, attaque, defense) => {
     return new Promise((resolve, reject) => {
