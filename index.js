@@ -3,12 +3,16 @@ import morgan from 'morgan';
 import fs from 'fs';
 import pokemonRoutes from './src/routes/pokemon.route.js';
 import sql from './src/config/dp_pg.js';
+import cors from 'cors';
+
+
 
 // Créer une application express
 const app = express();
 
 // Importer les middlewares
 app.use(express.json());
+app.use(cors());
 
 
 app.use('/api/pokemon', pokemonRoutes);
